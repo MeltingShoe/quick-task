@@ -8,8 +8,10 @@ import uuid
 '''
 takes 0-3 args
 if given 0 args it'll enter an interactive mode with menus
-if given 1 arg it'll add a new task to ingest with title given in arg
-with 2 args it'll also set the body of the new task to the 2nd given arg
+if given 1 arg it'll add a new task to ingest with title given in arg if the arg is a string
+with 2 args it'll also set the body of the new task to the 2nd given arg if the first arg is a string
+with 1 or 2 args you can feed a full, absolute path in a list as the first arg
+in this mode the last item of the list is the title of the new task
 with all 3 args it'll categorize the new task instead of adding it to ingest
 3rd arg is just a list of descending tasks with the format "['root task', 'subtask', 'sub-subtask']"
 if any of the parent tasks are missing they will be created
@@ -71,9 +73,19 @@ class DB:
         with open('dmp.pkl', 'wb') as f:
             pickle.dump({'tree':self.tree,"ingest":self.ingest}, f)
 
-    def add(self, title=None, body='', parent=None):
+    def add(self, title=None, body=None, parent=None):
         if title == None:
             title = input('enter task name\n')
+        x = ast.literal_eval(title)
+        print(x)
+        if type(x) is list:
+            parent = str(x[:-1])
+            title = x[-1]
+        if body == None:
+            body = ''
+        print(title)
+        print(body)
+        print(parent)
         task = Task(title, body=body)
         if parent == None:
             self.ingest.append(task)
@@ -108,16 +120,6 @@ class DB:
         task = taskDB.tree.chooseChild()
         print(f"<{task.title}>\n{task.body}")
         return task
-
-
-def input_with_prefill(prompt, text):
-    def hook():
-        readline.insert_text(text)
-        readline.redisplay()
-    readline.set_pre_input_hook(hook)
-    result = input(prompt)
-    readline.set_pre_input_hook()
-    return result
 
 
 if __name__ == '__main__':
